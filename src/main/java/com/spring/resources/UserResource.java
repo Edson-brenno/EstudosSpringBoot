@@ -9,20 +9,18 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping(value = "/users")
 public class UserResource {
-    public List<User> users = new ArrayList<>();
     @Autowired
     private UserRepository userRepository;
 
     int countId = 0;
     @GetMapping
     public ResponseEntity<List<User>> findAll() {
-
-        return ResponseEntity.ok().body(this.users);
+        List<User> users = userRepository.findAll();
+        return ResponseEntity.ok().body(users);
     }
 
     @PostMapping("/new")
@@ -40,6 +38,17 @@ public class UserResource {
         else{
             Mensage<User> mensage = new Mensage<User>("E-mail ja cadastrado", user);
             return ResponseEntity.internalServerError().body(mensage);
+        }
+    }
+
+    @DeleteMapping("/exclude")
+    public ResponseEntity<Mensage<User>> delete(@RequestParam String email) {
+        List<User> user = this.userRepository.findByEmail(email);
+        if(user.size() > 0) {
+            userRepository.delete(user.get(0));
+            return  ResponseEntity.ok().body(new Mensage<User>("Usuario deletado com sucesso", user.get(0)));
+        }else{
+            return ResponseEntity.internalServerError().body(new Mensage<User>("Usuario nao existente", null));
         }
     }
 }
